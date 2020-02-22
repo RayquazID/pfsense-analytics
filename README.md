@@ -1,6 +1,5 @@
 **I did not test the modifications 100% for that run it on your responsibility**
 
-- go the file time.env and change the time zone to yours
 
 
 This Project aims to give you better insight of what's going on your pfSense Firewall. It's based on some heavylifting alrerady done by devopstales and opc40772. Since it still was a bit clumsy and outdated I wrapped some docker-compose glue around it, to make it a little bit easier to get up and running. It should work hasslefree with a current Linux that has docker and docker-compose. Thanks as well to MatthewJSalerno for some Streamlining of the Graylog provisioning Process.
@@ -67,6 +66,8 @@ Next edit the ./Docker/graylog.env file and set some values:
 
 Set the proper Time Zone: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 - GRAYLOG_TIMEZONE=Europe/Berlin
+
+- Also, go the file time.env and change the time zone to yours
 
 The URL you want your graylog to be available under:
 - GRAYLOG_HTTP_EXTERNAL_URI (eg: http://localhost:9000)
