@@ -5,8 +5,13 @@ services:
   # MongoDB: https://hub.docker.com/_/mongo/
   mongodb:
     image: mongo:3
+    env_file:
+      - ./time.env
     volumes:
       - mongo_data:/data/db
+      - ./certs:/etc/ssl
+    depends_on:
+      - SelfSigned
 
   # Elasticsearch: https://www.elastic.co/guide/en/elasticsearch/reference/6.x/docker.html
   elasticsearch:
@@ -15,14 +20,18 @@ services:
     restart: always
     volumes:
       - es_data:/usr/share/elasticsearch/data
+      - ./certs:/etc/ssl
     env_file:
       - ./elasticsearch.env
+      - ./time.env
     ulimits:
       memlock:
         soft: -1
         hard: -1
     ports:
       - 9200:9200
+    depends_on:
+      - SelfSigned
 
   # Graylog: https://hub.docker.com/r/graylog/graylog/
   graylog:
@@ -31,14 +40,17 @@ services:
     volumes:
       - graylog_journal:/usr/share/graylog/data/journal
       - ./graylog/service-names-port-numbers.csv:/etc/graylog/server/service-names-port-numbers.csv
+      - ./certs:/etc/ssl
     env_file:
       - ./graylog.env
+      - ./time.env
     links:
       - mongodb:mongo
       - elasticsearch
     depends_on:
       - mongodb
       - elasticsearch
+      - SelfSigned
     ports:
       # Netflow
       - 2055:2055/udp
@@ -59,56 +71,82 @@ services:
   kibana:
     image: docker.elastic.co/kibana/kibana-oss:6.8.5
     env_file:
-      - kibana.env
+      - ./kibana.env
+      - ./time.env
     depends_on:
       - elasticsearch
+      - SelfSigned
     ports:
       - 5601:5601
+    volumes:
+      - ./certs:/etc/ssl
+
   cerebro:
     image: lmenezes/cerebro
     ports:
       - 9001:9000
+    env_file:
+      - ./time.env
     links:
       - elasticsearch
     depends_on:
       - elasticsearch
+      - SelfSigned
     logging:
       driver: "json-file"
       options:
         max-size: "100M"
+    volumes:
+      - ./certs:/etc/ssl  
 
   influxdb:
     image: 'influxdb:latest'
     env_file:
       - ./influxdb.env
+      - ./time.env
     ports:
       - 8086:8086
     volumes:
       - influxdb:/var/lib/influxdb
+      - ./certs:/etc/ssl
     logging:
       driver: "json-file"
       options:
         max-size: "100M"
+    depends_on:
+      - SelfSigned
+
 
   grafana:
     image: grafana/grafana:latest
     env_file:
       - ./grafana.env
+      - ./time.env
     ports:
       - 3000:3000
     volumes:
       - grafana:/var/lib/grafana
       - ./grafana/provisioning/:/etc/grafana/provisioning
+      - ./certs:/etc/ssl
     links:
       - elasticsearch
       - influxdb
     depends_on:
       - elasticsearch
       - influxdb
+      - SelfSigned
     logging:
       driver: "json-file"
       options:
         max-size: "100M"
+  
+  SelfSigned:
+    image: paulczar/omgwtfssl
+    environment: 
+      - SSL_SIZE=4096
+      - SSL_EXPIRE=9999
+    volumes:
+      - ./certs:/certs
 
 # Volumes for persisting data, see https://docs.docker.com/engine/admin/volumes/volumes/
 volumes:

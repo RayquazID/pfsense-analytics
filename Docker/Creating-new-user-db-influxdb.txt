@@ -1,0 +1,28 @@
+creating user:
+influx
+CREATE USER "username" WITH PASSWORD 'password'
+CREATE DATABASE "database"
+GRANT ALL ON "database" TO "username"
+
+
+
+manually 
+enable https:
+
+openssl req -x509 -nodes -newkey rsa:2048 \
+  -keyout /etc/ssl/influxdb-selfsigned.key \
+  -out /etc/ssl/influxdb-selfsigned.crt \
+  -days 9999
+
+chmod 644 /etc/ssl/influxdb-selfsigned.crt
+chmod 600 /etc/ssl/influxdb-selfsigned.key
+
+[http]
+  https-enabled = true
+  https-certificate = "/etc/ssl/influxdb-selfsigned.crt"
+  https-private-key = "/etc/ssl/influxdb-selfsigned.key"
+
+
+  testing:
+
+influx -ssl -host https://localhost:8086
